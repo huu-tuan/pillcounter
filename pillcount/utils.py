@@ -14,6 +14,14 @@ from umodbus import conf
 from umodbus.client import tcp
 
 
+# def padding_width(image, width):
+#     if image.shape[1] < width:
+#         new_image = np.zeros((image.shape[0], width, 3))
+#         new_image[:, : image.shape[1], :] = image
+#     else:
+#         new_image = image
+#     return new_image
+
 
 def preprocess(image, crop=[0, 0, 0, 0], pad=True):
     # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -369,7 +377,7 @@ class CameraStream():
     """
 
     
-    def __init__(self, DeviceNum = None, InputVideo = None):
+    def __init__(self, DeviceNum = None, InputVideo = None, buffer = 50):
 
         # DeviceNum = 0
         width = 424
@@ -396,6 +404,8 @@ class CameraStream():
         cap.set(32, 0.0)  # Backlight
         cap.set(38, 10.0)  # Buffersize
         cap.set(39, 0.0)  # Autofocus
+
+        self.buffer = buffer
 
         self.stream = cap
         self.frame = []
@@ -439,13 +449,14 @@ class CameraStream():
                 self.stop()
             else:
                 # print(f"{self.source_name} - {len(self.frame)}")
-                if len(self.frame) > 100:
+                if len(self.frame) > self.buffer:
                     self.frame.pop(0)
                 (self.grabbed, frame) = self.stream.read()
                 self.frame.append(frame)
                 self.frameNum += 1
+            
+            time.sleep(.001)
 
-    
     def get(self):
         # If the frame buffer is empty, wait until a frame arrives
         while len(self.frame) < 1:
@@ -473,6 +484,7 @@ class VideoGUI():
         self.lastAreaMinString=""
         self.lastAreaString=""
         img = cv2.imread('pillcount/images/Header.png')
+        # img = padding_width(img, window_size[1])
 
         self.current_index = 0
         self.video_ids = list(self.myCounter.keys())
@@ -480,12 +492,14 @@ class VideoGUI():
         # Define the window layout
         sg.theme("DarkBlack1")
 
-        colHeader = sg.Column([[sg.Image(key='-HEADER-', data=cv2.imencode(".png", img)[1].tobytes(), enable_events=True, pad=None)]], size=(480, 84), pad=(0, 0))
-        colActions = sg.Column([[sg.Button("Reset Count", font=("Helvetica", 12), size=(8, 3)),     # button_color=('red', 'white')
+        colHeader = sg.Column([[sg.Image(key='-HEADER-', data=cv2.imencode(".png", img)[1].tobytes(), \
+                                    enable_events=True, pad=None)]], size=(window_size[1], 84), pad=(0, 0))
+        colActions = sg.Column([[sg.Button("Reset Count", font=("Helvetica", 12), size=(8, 1)),     # button_color=('red', 'white')
                                  sg.Button("Reset Ref", font=("Helvetica", 12), size=(8, 1)),
                                  sg.Button("Save Frames", font=("Helvetica", 12), size=(10, 1)), 
                                  sg.Button("Switch Stream", font=("Helvetica", 12), size=(10, 1)), 
-                                 ]], size=(480, 45),
+                                 sg.Button("Cancel", font=("Helvetica", 12), size=(10, 1)), 
+                                 ]], size=(window_size[1], 45),
                                pad=(0, 0))
 
         colVideo = sg.Column([[sg.Image(filename="", key="-IMAGE-")]], pad=(0, 0))
@@ -676,6 +690,8 @@ class VideoGUI():
                     self.current_index = self.video_ids[self.current_index + 1]
                 else:
                     self.current_index = 0
+            if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
+                self.stop()
 
             myCounter.DiffThresh = values["-THRESH SLIDER-"] #TODO: reimplement tuning
             # print(myCounter.DiffThresh)
@@ -710,6 +726,7 @@ class VideoGUI():
             self.window['-FRAMEBUFFER-'].update(value=self.frameBufferLen)
             self.window['-MAXFRAMEBUFFER-'].update(value=self.maxframeBuffer)
 
+        self.window.close()
 
 class Counter():
     

@@ -50,7 +50,9 @@ if __name__ == '__main__':
     parser.add_argument('--VideoLoop2', dest='VideoLoop', default=False, type=lambda x: (str(x).lower() in ['true', '1', 'yes']),help='Run the video in an infinite loop')
     """
     args = parser.parse_args()
-    print(args)
+    # print(args)
+    print('*** Configures ***')
+    print(''.join(f' - {k} = {v}\n' for k, v in vars(args).items()))
 
     if args.Profile:
         pr = cProfile.Profile()

@@ -15,6 +15,9 @@ from umodbus import conf
 from umodbus.client import tcp
 
 from pillcount.utils import preprocess, Contour, Pill, CommunicationStream, CameraStream, VideoGUI, Counter
+#Ensure there is a data folder for saving frames
+if not os.path.exists('data'):
+    os.makedirs('data')
 
 
 def run(args):
@@ -24,7 +27,7 @@ def run(args):
         version = str(f.readline())
         version = [int(x) for x in version.split(".")]
         type(version)
-        print('Version: ' + str(version))
+        # print('Version: ' + str(version))
         f.close()
     except:
         print('ERROR: Version file not found - setting version to 0')
@@ -70,51 +73,49 @@ def run(args):
                     os.remove(path)
 
     frameStatics = {}
-    # frameStatic = []
-    if len(args.InputVideo) == 0:
-        # Start video stream
-        myCameraStream = {}
-        for idx in video_index:
-            myCameraStream[idx] = CameraStream(idx)
-            myCameraStream[idx].start()
-            # slowly grab some initial frames in case the captured images are oversaturated
-            for i in range(10):
-                time.sleep(0.1)
-                frameStatic, _ = myCameraStream[idx].get()
-            frameStatic = preprocess(frameStatic, crop)
-            frameStatics[idx] = frameStatic
+    myCameraStream = {}
+    for idx in video_index:
+        if len(args.InputVideo) == 0:
+            myCameraStream[idx] = CameraStream(DeviceNum = idx)
+        else:
+            myCameraStream[idx] = CameraStream(InputVideo = args.InputVideo[idx])
+        myCameraStream[idx].start()
+        # slowly grab some initial frames in case the captured images are oversaturated
+        for i in range(10):
+            time.sleep(0.01)
+            frameStatic, _ = myCameraStream[idx].get()
+        if type(frameStatic) == type(None):
+            print('Video File not Found')
+            quit()
+        frameStatic = preprocess(frameStatic, crop)
+        frameStatics[idx] = frameStatic
 
-    # else:
-    #     cap = {}
-    #     for idx, path in enumerate(args.InputVideo):
-    #         cap[idx] = cv2.VideoCapture(path)
-    #         cap[idx].set(cv2.CAP_PROP_POS_FRAMES, args.StartFrame)
+    # if len(args.InputVideo) == 0:
+    #     # Start video stream
+    #     myCameraStream = {}
+    #     for idx in video_index:
+    #         myCameraStream[idx] = CameraStream(idx)
+    #         myCameraStream[idx].start()
+    #         # slowly grab some initial frames in case the captured images are oversaturated
     #         for i in range(10):
-    #             time.sleep(0.1)
-    #             ret, frameStatic = cap[idx].read()
+    #             time.sleep(0.01)
+    #             frameStatic, _ = myCameraStream[idx].get()
+    #         frameStatic = preprocess(frameStatic, crop)
+    #         frameStatics[idx] = frameStatic
+    # else:
+    #     myCameraStream = {}
+    #     for idx, path in enumerate(args.InputVideo):
+    #         myCameraStream[idx] = CameraStream(InputVideo = path)
+    #         myCameraStream[idx].start()
+    #         # slowly grab some initial frames in case the captured images are oversaturated
+    #         for i in range(10):
+    #             time.sleep(0.01)
+    #             frameStatic, _ = myCameraStream[idx].get()
     #         if type(frameStatic) == type(None):
     #             print('Video File not Found')
     #             quit()
     #         frameStatic = preprocess(frameStatic, crop)
     #         frameStatics[idx] = frameStatic
-    else:
-        myCameraStream = {}
-        for idx, path in enumerate(args.InputVideo):
-            myCameraStream[idx] = CameraStream(InputVideo = path)
-            myCameraStream[idx].start()
-            # slowly grab some initial frames in case the captured images are oversaturated
-            for i in range(10):
-                time.sleep(0.1)
-                frameStatic, _ = myCameraStream[idx].get()
-            if type(frameStatic) == type(None):
-                print('Video File not Found')
-                quit()
-            frameStatic = preprocess(frameStatic, crop)
-            frameStatics[idx] = frameStatic
-
-    #Ensure there is a data folder for saving frames
-    if not os.path.exists('data'):
-        os.makedirs('data')
 
     # GPIO is currently not used
     if args.GPIO:
@@ -165,8 +166,8 @@ def run(args):
             for key in myCounter.keys():
                 myCounter[key].tubeCleanImage = frameStatic
                 cv2.imwrite(imageFileName, myCounter[key].frameStatic)
-
         # cv2.imwrite(imageFileName, myCounter.frameStatic)
+
     else:
         print('Creating Clean Tube Image - none exists')
         if not os.path.exists('images'): os.makedirs('images')
@@ -255,12 +256,12 @@ def run(args):
                 break
 
         # check if frame is NONE
-        skip = False
+        end = [False] * len(video_index)
         for key, fr in frame.items():
             if fr is None:
-                skip = True
-        if skip:
-            print('skip')
+                end[key] = True
+        if all(end):
+            print('end of video')
             # continue
             break
 
@@ -319,7 +320,7 @@ def run(args):
                 if args.InputVideo == '': 
                     for key in myCameraStream.keys():
                         myCameraStream[key].stop()
-                # break
+                break
 
         # Slow down display rate
         for key in myCounter.keys():
@@ -338,8 +339,8 @@ def run(args):
 
 
     #End of Main Loop
-
     if args.DisplayVideo: 
+        print('Stop GUI')
         myVideo.stop()
 
     if args.ModbusCom: 
@@ -382,6 +383,7 @@ def run(args):
             allFramesVideo.write(frame)
         allFramesVideo.release()
 
+    print('>>>>> End')
     # return len([x for x in myCounter[0].pillDataFull if x.Registered])
     return 
 
