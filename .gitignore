@@ -1,2 +1,3 @@
 *.mp4
 data/
+*/__pycache__/
