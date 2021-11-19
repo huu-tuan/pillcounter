@@ -389,6 +389,7 @@ class CameraStream():
             self.source_name = InputVideo
             cap = self.readInputVideo(InputVideo)
 
+        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
         cap.set(3, int(width))
         cap.set(4, int(height))
         cap.set(8, 16.0)  # Format
