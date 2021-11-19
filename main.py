@@ -14,8 +14,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='counter configuration')
     # parser.add_argument('--DeviceNum', dest='DeviceNum', default=0, type=int, help='device number of the Camera')
     # parser.add_argument('--InputVideo', dest='InputVideo', default = '', type=str, help='filename of the Input Video')
-    parser.add_argument('--DeviceNum', dest='DeviceNum', default=[0], type=list, help='device number of the Camera')
-    parser.add_argument('--InputVideo', dest='InputVideo', nargs='+', default = [], type=list, help='filename of the Input Video')
+    parser.add_argument('--DeviceNum', dest='DeviceNum', nargs='+', default=[0], help='device number of the Camera')
+    parser.add_argument('--InputVideo', dest='InputVideo', nargs='+', default = [], help='filename of the Input Video')
     parser.add_argument('--DisplayVideo', dest='DisplayVideo', default=False, type=lambda x: (str(x).lower() in ['true', '1', 'yes']), help='Enable/Disable Video Display')
     parser.add_argument('--ModbusCom', dest='ModbusCom', default = False, type=lambda x: (str(x).lower() in ['true','1', 'yes']), help='Enable/Disable Modbus Communication')
     parser.add_argument('--GPIO', dest='GPIO', default = False, type=lambda x: (str(x).lower() in ['true','1', 'yes']), help='Enable/Disable GPIO control')
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     parser.add_argument('--Diff', dest='Diff',default=False, type=lambda x: (str(x).lower() in ['true', '1', 'yes']), help='Enable/Disable Difference Thresholding')
     parser.add_argument('--DiffThresh', dest='DiffThresh', default=20, type=int, help='Low value for diff based threshold ')
     parser.add_argument('--AreaThresh', dest='AreaThresh', default=100, type=int, help='Low value for area ')
-    parser.add_argument('--Profile', dest='Profile', default=False, type=lambda x: (str(x).lower() in ['true', '1', 'yes']), help='Enable/Disable Profiling')
+    parser.add_argument('--Profile', dest='Profile', default=True, type=lambda x: (str(x).lower() in ['true', '1', 'yes']), help='Enable/Disable Profiling')
     parser.add_argument("--Crop", nargs="+", default=[0, 0, 0, 0], help='Crop [Top, Bottom, Left, Right')
     parser.add_argument('--PauseOnPill', dest='PauseOnPill', default=0, type=float, help='Set length of pause in seconds when pill is present (Only applicable with saved video input)')
     parser.add_argument('--ResetCleanTubeImage', dest='ResetCleanTubeImage', default = False, type=lambda x: (str(x).lower() in ['true','1', 'yes']), help='Delete stored Clean Tube Image and Create New One')
@@ -64,7 +64,10 @@ if __name__ == '__main__':
         with open('profile.txt', 'w+') as f:
             f.write(s.getvalue())
     else:
-        # print('\n>>> ', args.InputVideo)
-        args.InputVideo = ["".join(inp) for inp in args.InputVideo]
-        print('\n>>> ', args.InputVideo)
+        # print('> ', args.InputVideo)
+        if len(args.InputVideo) > 0:
+            print('\n>>> ', args.InputVideo)
+        else:
+            args.DeviceNum = [int(inp) for inp in args.DeviceNum]
+            print('\n>>> ', args.DeviceNum)
         count.run(args)

@@ -375,8 +375,10 @@ class CameraStream():
         width = 424
         height = 240
         if DeviceNum is not None:
+            self.source_name = DeviceNum
             cap = self.readCamera(DeviceNum)
         else:
+            self.source_name = InputVideo
             cap = self.readInputVideo(InputVideo)
 
         cap.set(3, int(width))
@@ -414,7 +416,10 @@ class CameraStream():
         return cap
 
     def readInputVideo(self, InputVideo):
-        return cv2.VideoCapture(InputVideo)
+        cap = cv2.VideoCapture(InputVideo)
+        if not cap.isOpened():
+            print('Warning: Video not found {}'.format(InputVideo))
+        return cap
     
     def start(self):
         Thread(target=self.capture, args=()).start()
@@ -433,6 +438,7 @@ class CameraStream():
             if not self.grabbed:
                 self.stop()
             else:
+                # print(f"{self.source_name} - {len(self.frame)}")
                 if len(self.frame) > 100:
                     self.frame.pop(0)
                 (self.grabbed, frame) = self.stream.read()
@@ -453,7 +459,7 @@ class CameraStream():
 
 class VideoGUI():
     
-    def __init__(self, windowName, myCounter, frame):
+    def __init__(self, windowName, myCounter, frame, window_size = (960, 800)):
         self.windowName = windowName
         self.screenWidth = 640
         self.screenHeight = 480
@@ -475,7 +481,7 @@ class VideoGUI():
         sg.theme("DarkBlack1")
 
         colHeader = sg.Column([[sg.Image(key='-HEADER-', data=cv2.imencode(".png", img)[1].tobytes(), enable_events=True, pad=None)]], size=(480, 84), pad=(0, 0))
-        colActions = sg.Column([[sg.Button("Reset Count", font=("Helvetica", 12), size=(8, 1)),
+        colActions = sg.Column([[sg.Button("Reset Count", font=("Helvetica", 12), size=(8, 3)),     # button_color=('red', 'white')
                                  sg.Button("Reset Ref", font=("Helvetica", 12), size=(8, 1)),
                                  sg.Button("Save Frames", font=("Helvetica", 12), size=(10, 1)), 
                                  sg.Button("Switch Stream", font=("Helvetica", 12), size=(10, 1)), 
@@ -531,7 +537,7 @@ class VideoGUI():
         # Create the window and show it
         # self.window = sg.Window("DrugSettings", self.layout, location=(100, 100), size=(480, 800), margins=(0, 0),
         #                         border_depth=None, no_titlebar=True)
-        self.window = sg.Window("DrugSettings", self.layout, location=(100, 100), size=(1280, 800), margins=(0, 0),
+        self.window = sg.Window("DrugSettings", self.layout, location=(100, 100), size = window_size, margins=(0, 0),
                                 border_depth=None, no_titlebar=True)
 
 

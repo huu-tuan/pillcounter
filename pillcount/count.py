@@ -8,7 +8,7 @@ import PySimpleGUI as sg
 import time
 from threading import Thread
 import copy
-import keyboard
+# import keyboard
 import subprocess
 import csv
 from umodbus import conf
@@ -34,6 +34,12 @@ def run(args):
     crop = []
     for item in args.Crop:
         crop.append(int(item))
+
+    # Index for video/cam 
+    if len(args.DeviceNum) > 0:
+        video_index = [i for i in range(len(args.DeviceNum))]
+    if len(args.InputVideo) > 0:
+        video_index = [i for i in range(len(args.InputVideo))]
 
     # Set up logging file
     if args.Logging:
@@ -68,15 +74,15 @@ def run(args):
     if len(args.InputVideo) == 0:
         # Start video stream
         myCameraStream = {}
-        for device in args.DeviceNum:
-            myCameraStream[device] = CameraStream(device)
-            myCameraStream[device].start()
+        for idx in video_index:
+            myCameraStream[idx] = CameraStream(idx)
+            myCameraStream[idx].start()
             # slowly grab some initial frames in case the captured images are oversaturated
             for i in range(10):
                 time.sleep(0.1)
-                frameStatic, _ = myCameraStream[device].get()
+                frameStatic, _ = myCameraStream[idx].get()
             frameStatic = preprocess(frameStatic, crop)
-            frameStatics[device] = frameStatic
+            frameStatics[idx] = frameStatic
 
     # else:
     #     cap = {}
@@ -183,19 +189,18 @@ def run(args):
         
     # tr = tracker.SummaryTracker()
     if args.InputVideo == '': 
-        for device in args.DeviceNum:
-            myCameraStream[device].reset()  # reset frame buffer - this will sometimes max out on init only
+        for idx in video_index:
+            myCameraStream[idx].reset()  # reset frame buffer - this will sometimes max out on init only
 
     print('Starting Count')
-    timeStarted=time.time()
 
     #Main loop
     while True:
         frametic = time.time()
         frameTotal += 1
         frame = {}
-        frame[0] = None
-        frame[1] = None
+        # frame[0] = None
+        # frame[1] = None
 
         # Grab the oldest frame from the buffer or video file
         # if args.InputVideo == '':
@@ -218,7 +223,7 @@ def run(args):
         #             cap[idx] = cv2.VideoCapture(path)
         #             _, frame[idx] = cap[idx].read()
 
-        for idx in [0, 1]:
+        for idx in video_index:
             frame[idx], frameBufferLen = myCameraStream[idx].get()
             
             if args.DisplayVideo:
@@ -255,7 +260,9 @@ def run(args):
             if fr is None:
                 skip = True
         if skip:
-            continue
+            print('skip')
+            # continue
+            break
 
         # stop if target pill count reached
         for key in myCounter.keys():
@@ -324,10 +331,10 @@ def run(args):
             if len(myCounter[key].pillDataFull)>1000 and myCounter[key].CountingIdle: #changed to 1000 to prevent excessive memory use TODO: determine if this causes issues with logging or counting
                 myCounter[key].reset()
 
-        # if args.Debug:
-        if keyboard.is_pressed("q"):
-            print("q pressed, ending loop")
-            break
+        # # if args.Debug:
+        # if keyboard.is_pressed("q"):
+        #     print("q pressed, ending loop")
+        #     break
 
 
     #End of Main Loop
