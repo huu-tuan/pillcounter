@@ -1,0 +1,11 @@
+umodbus
+#opencv-python
+numpy
+datetime
+pandas
+statistics
+#matplotib
+Pillow
+pytest
+#python3-tk
+PySimpleGUI

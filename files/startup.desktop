@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Exec=/bin/bash /opt/startup/startup.sh
+Hidden=false
+NoDisplay=false
+Name[en_US]=Name
+Name=Name
+Comment[en_US]=Description of what its doing
+Comment=Description of what its doing
