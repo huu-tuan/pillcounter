@@ -653,7 +653,7 @@ class VideoGUI():
                 # displayFrame = displayFrame[rightCrop:width - leftCrop, topcrop:height - bottomcrop]
                 displayFrame = cv2.resize(displayFrame, dim, interpolation=cv2.INTER_AREA)
 
-            # displayFrame = cv2.rotate(displayFrame, cv2.ROTATE_90_CLOCKWISE)
+            displayFrame = cv2.rotate(displayFrame, cv2.ROTATE_90_CLOCKWISE)
             # h, w = displayFrame.shape[:2]
             # if h > w:
             #     displayFrame = cv2.rotate(displayFrame, cv2.ROTATE_90_CLOCKWISE)
