@@ -20,6 +20,9 @@ if not os.path.exists('data'):
     os.makedirs('data')
 
 
+window_size = (480, 800)
+
+
 def run(args):
     #get the release version
     try:
@@ -185,7 +188,7 @@ def run(args):
 
     # Start GUI Thread
     if args.DisplayVideo:
-        myVideo = VideoGUI('Video', myCounter, frameStatics)
+        myVideo = VideoGUI('Video', myCounter, frameStatics, window_size)
         myVideo.start()
         
     # tr = tracker.SummaryTracker()
@@ -276,6 +279,7 @@ def run(args):
         for key in myCounter.keys():
             myCounter[key].diffFrame(frame[key])
 
+        contour = time.time()
         if args.ModbusCom:
             for key in comStream.keys():
                 if comStream[key].comm_FrontDoorClosedValue:
@@ -293,6 +297,7 @@ def run(args):
 
                 # Count pills based on contours
                 myCounter[key].countPills(frameTotal)
+        print('>>>>> ', time.time() - contour)
 
         # write to log file
         for key in myCounter.keys():

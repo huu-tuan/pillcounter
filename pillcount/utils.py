@@ -495,11 +495,11 @@ class VideoGUI():
 
         colHeader = sg.Column([[sg.Image(key='-HEADER-', data=cv2.imencode(".png", img)[1].tobytes(), \
                                     enable_events=True, pad=None)]], size=(window_size[1], 84), pad=(0, 0))
-        colActions = sg.Column([[sg.Button("Reset Count", font=("Helvetica", 12), size=(8, 1)),     # button_color=('red', 'white')
-                                 sg.Button("Reset Ref", font=("Helvetica", 12), size=(8, 1)),
-                                 sg.Button("Save Frames", font=("Helvetica", 12), size=(10, 1)), 
-                                 sg.Button("Switch Stream", font=("Helvetica", 12), size=(10, 1)), 
-                                 sg.Button("Cancel", font=("Helvetica", 12), size=(10, 1)), 
+        colActions = sg.Column([[sg.Button("Reset Count", font=("Helvetica", 10), size=(8, 1)),     # button_color=('red', 'white')
+                                 sg.Button("Reset Ref", font=("Helvetica", 10), size=(8, 1)),
+                                 sg.Button("Save Frames", font=("Helvetica", 10), size=(8, 1)), 
+                                 sg.Button("Switch Stream", font=("Helvetica", 10), size=(10, 1)), 
+                                 sg.Button("Cancel", font=("Helvetica", 10), size=(8, 1)), 
                                  ]], size=(window_size[1], 45),
                                pad=(0, 0))
 
@@ -654,9 +654,9 @@ class VideoGUI():
                 displayFrame = cv2.resize(displayFrame, dim, interpolation=cv2.INTER_AREA)
 
             # displayFrame = cv2.rotate(displayFrame, cv2.ROTATE_90_CLOCKWISE)
-            h, w = displayFrame.shape[:2]
-            if h > w:
-                displayFrame = cv2.rotate(displayFrame, cv2.ROTATE_90_CLOCKWISE)
+            # h, w = displayFrame.shape[:2]
+            # if h > w:
+            #     displayFrame = cv2.rotate(displayFrame, cv2.ROTATE_90_CLOCKWISE)
 
             ### resize at all
             h, w = displayFrame.shape[:2]
